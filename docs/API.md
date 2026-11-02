@@ -247,7 +247,7 @@ Backend:
 AI service:
 
 - `AI_SERVICE_TOKEN`: must match the backend value
-- `LLM_PROVIDER`: `openai` (default) or `gemini`
-- `OPENAI_API_KEY` or `GEMINI_API_KEY`: key for the chosen provider. Without it the service runs in demo mode.
-- `LLM_MODEL`: optional model override. Defaults are `gpt-4o-mini` for OpenAI and `gemini-2.5-flash` for Gemini.
+- `LLM_PROVIDER`: `openai` (default), `gemini`, or `groq`
+- `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `GROQ_API_KEY`: key for the chosen provider. Without it the service runs in demo mode.
+- `LLM_MODEL`: optional model override. Defaults are `gpt-4o-mini` for OpenAI, `gemini-2.5-flash` for Gemini, and `llama-3.3-70b-versatile` for Groq.
 - `LLM_TIMEOUT_SECONDS`: provider request timeout, default `60`

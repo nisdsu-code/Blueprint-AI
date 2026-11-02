@@ -16,13 +16,18 @@ PROVIDERS = {
         "key_env": "GEMINI_API_KEY",
         "default_model": "gemini-2.5-flash",
     },
+    "groq": {
+        "base_url": "https://api.groq.com/openai/v1",
+        "key_env": "GROQ_API_KEY",
+        "default_model": "llama-3.3-70b-versatile",
+    },
 }
 
 SERVICE_TOKEN = os.getenv("AI_SERVICE_TOKEN", "").strip()
 LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").strip().lower()
 
 if LLM_PROVIDER not in PROVIDERS:
-    raise RuntimeError("LLM_PROVIDER must be 'openai' or 'gemini'")
+    raise RuntimeError(f"LLM_PROVIDER must be one of {', '.join(PROVIDERS)} (got '{LLM_PROVIDER}')")
 
 _provider = PROVIDERS[LLM_PROVIDER]
 LLM_BASE_URL = _provider["base_url"]

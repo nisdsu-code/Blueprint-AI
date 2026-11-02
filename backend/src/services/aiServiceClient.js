@@ -15,7 +15,8 @@ async function callAiService(path, details) {
       body: JSON.stringify(details),
       signal: AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS),
     })
-  } catch {
+  } catch (error) {
+    console.error(`AI service request to ${path} failed: ${error.cause?.code || error.name}: ${error.cause?.message || error.message}`)
     throw httpError(503, 'The AI service is unavailable right now. Please try again shortly.')
   }
 
