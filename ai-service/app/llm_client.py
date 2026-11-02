@@ -60,12 +60,25 @@ async def _request_completion(system_prompt: str, user_prompt: str) -> str:
         raise LLMError("The AI provider rejected the request. Please try again later.", 502)
 
     try:
-        choice = response.json()["choices"][0]
+        body = response.json()
+        choice = body["choices"][0]
         content = choice["message"]["content"]
         finish_reason = choice.get("finish_reason")
     except (ValueError, KeyError, IndexError, TypeError) as exc:
         logger.error("model_error: unexpected response shape from %s: %s", provider, _snippet(response.text))
         raise LLMError("The AI provider returned an unexpected response.", 502) from exc
+
+    usage = body.get("usage") or {}
+    logger.info(
+        "completion provider=%s model=%s finish_reason=%s chars=%s prompt_tokens=%s completion_tokens=%s max_tokens=%s",
+        provider,
+        body.get("model"),
+        finish_reason,
+        len(content or ""),
+        usage.get("prompt_tokens"),
+        usage.get("completion_tokens"),
+        config.LLM_MAX_OUTPUT_TOKENS,
+    )
 
     if finish_reason == "length":
         logger.error(
@@ -87,13 +100,13 @@ def _parse_object(content: str, attempt: int) -> dict | None:
         data = json.loads(content)
     except json.JSONDecodeError as exc:
         logger.error(
-            "json_parse_error attempt=%s: %s (line %s, column %s); response length=%s; tail=%s",
+            "json_parse_error attempt=%s: %s (line %s, column %s); response length=%s; near error=%r",
             attempt,
             exc.msg,
             exc.lineno,
             exc.colno,
             len(content),
-            _snippet(content),
+            content[max(0, exc.pos - 120) : exc.pos + 40],
         )
         return None
 

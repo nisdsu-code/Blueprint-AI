@@ -2,54 +2,52 @@
 
 ## Product intent & audience
 
-- **BlueprintGen AI**: AI-powered requirement engineering and software blueprint generation system.
-- Converts natural-language ideas into structured software development documents, database schemas, and architectures.
-- Audience: developers, technical founders, and teams needing rapid project scaffolding from ideas.
+- **BlueprintGen AI** converts natural-language software ideas into structured requirements, database schemas, architectures, and implementation blueprints.
+- Primary audience: developers, technical founders, and teams seeking rapid project scaffolding.
 - Core workflow: create project → analyze requirement → generate blueprint.
 
 ## Brand personality & voice
 
 - Technical, professional, and clear.
 - User-facing copy is concise and action-oriented.
-- Dashboard is personalized to the signed-in user.
+- Dashboard experience is personalized to the signed-in user.
 
 ## Visual design & UX direction
 
-- Sign-in and sign-up pages match the existing app visual style.
-- Sidebar footer shows the signed-in user’s name and logout action.
+- Preserve the existing app visual style across authentication and project workflows.
+- Sidebar footer should identify the signed-in user and provide logout.
 - Protected routes redirect unauthenticated users to sign-in.
-- New Project form includes project name, optional category, written requirement, and a shared “Use an example” action.
+- New Project captures name, optional category, and written requirement, with a shared “Use an example” action.
 - After saving, users can create another project or return to the dashboard.
-- Analyze Requirement and Generate Blueprint actions remain visibly disabled/unavailable until the AI service is reachable and configured.
-- Analysis UI should tolerate incomplete or missing response fields rather than crash; missing-information data is treated defensively.
-- My Projects currently has a placeholder state rather than a real saved-project list.
+- AI actions remain visibly unavailable until the AI service is reachable and configured.
+- Analysis views must tolerate missing response fields defensively rather than crash.
+- My Projects and dashboard project data remain placeholder/sample experiences until listing is implemented.
 
 ## Decisions, constraints & rationale
 
 - **Frontend:** Vite + React.
 - **Backend:** Express + Mongoose in a separate `backend` folder.
-- **AI service:** Python service exposes `/analyze` and `/blueprint`; Groq is currently responding successfully at the provider level.
+- **AI service:** Python service exposes `/analyze` and `/blueprint`; provider configuration supports Gemini, OpenAI, and Groq.
 - **Database:** MongoDB via Mongoose; PostgreSQL/Prisma are not used.
-- **Authentication:** bcrypt-style password hashing and JWT sessions with 7-day expiry; sign-up, sign-in, sign-out, frontend auth provider, API client, and protected routes are implemented.
-- **Project creation:** Draft projects are saved to the authenticated user’s MongoDB account with frontend/backend validation; unauthenticated requests are rejected.
-- **AI providers:** The AI service supports provider selection among Gemini, OpenAI, and Groq through configuration. Switching providers is intended to require configuration changes rather than UI rewrites.
-- **AI JSON handling:** `/analyze` and `/blueprint` request Groq’s JSON response format where supported and use prompts requiring raw valid JSON without Markdown fences or explanatory text.
-- **Response limits:** AI output is bounded through `LLM_MAX_OUTPUT_TOKENS`, currently configured to 8192 in the service changes, to reduce truncation of long blueprints.
-- **Validation and errors:** AI responses are checked for truncation, JSON parse failures, and schema/structure validation failures before being accepted. Incomplete or malformed JSON is never silently repaired into a successful blueprint.
-- **Logging:** Service errors identify whether the failure is related to model/provider errors, response truncation, JSON parsing, or schema validation while avoiding unsafe secret logging.
-- **Compatibility:** Existing frontend response shapes and functionality remain unchanged; no mock AI responses were introduced.
-- **Secrets:** Provider API keys belong in AI-service secret settings/environment configuration, not frontend code. The Groq key must be supplied by the user; it cannot be added by the assistant.
+- **Authentication:** bcrypt-style password hashing, JWT sessions with 7-day expiry, frontend auth provider, API client, sign-up/sign-in/sign-out, and protected routes.
+- **Project creation:** Drafts are validated and saved to the authenticated user’s MongoDB account; unauthenticated requests are rejected.
+- **AI response integrity:** Responses must be validated for truncation, JSON parsing, and expected structure. Incomplete or malformed output must not be silently repaired or treated as a successful blueprint.
+- **Diagnostics:** AI-service completion failures now record model name, finish reason, response length, token usage, and JSON parse context without exposing secrets. Logs are intended to distinguish provider/model failure, output-limit truncation, malformed JSON, and schema failure.
+- **Runtime investigation:** JavaScript-style parse errors suggest at least one failing parse may occur in the Node backend or browser rather than Python; all parse points on the request path need to be considered.
+- **Structured output:** Strict JSON-schema support depends on the selected Groq model; the current/default Llama setup may provide JSON mode without strict schema enforcement. A model change may be required for schema-constrained output.
+- **Output strategy:** Do not rely solely on increasing token limits or regex repair. If complete blueprints exceed reliable response capacity, generate independently validated sections and combine them only after validation.
+- **Compatibility:** Preserve existing frontend response shapes and functionality; no mock AI responses.
+- **Secrets:** Provider keys belong in AI-service environment/secret configuration, never frontend code. The Groq key must be supplied by the user.
 - **Deployment target:** Render is planned for the backend; MongoDB Atlas is planned for the database.
-- **Phased status:** Project creation (Phase 3) is complete and locally tested. AI analysis/blueprint phases and real saved-project listing/dashboard data remain incomplete.
-- **Shared form options:** Example requirement text is maintained in a shared module.
+- **Status:** Authentication and project creation are implemented. Real saved-project listing, dashboard data, AI end-to-end validation, and deployment setup remain incomplete.
 
 ## Open questions & assumptions
 
-- Both AI endpoints still need an end-to-end test using a Library Management System requirement in an environment with Python dependencies and the configured Groq key.
-- Confirm that the selected Groq model supports the requested JSON response format and the configured `max_completion_tokens` setting.
-- Confirm the effective `LLM_MAX_OUTPUT_TOKENS` value in each deployment environment and monitor logs for remaining truncation.
-- Groq API key, MongoDB Atlas connection string, and JWT secret still need to be supplied through secret/environment settings.
-- Confirm the AI service endpoint and backend-to-AI-service URL for local and production environments.
-- Dashboard and My Projects still use sample/placeholder data until saved-project listing is implemented.
-- Render deployment setup remains pending.
-- No real project has been confirmed as saved against a live MongoDB instance.
+- Run both `/analyze` and `/blueprint` end-to-end with a Library Management System requirement using the configured Groq key and Python dependencies.
+- Inspect the new completion and JSON-error logs to establish whether failures are truncation, malformed provider output, wrong-runtime parsing, or schema mismatch.
+- Confirm the selected Groq model’s support for strict JSON schema and the configured token parameter.
+- Determine whether the observed response length and token usage approach the model’s output limit; do not assume truncation from character count alone.
+- Decide whether to switch to a schema-capable model or implement smaller independently validated sections.
+- Confirm the effective `LLM_MAX_OUTPUT_TOKENS` and AI-service URL in local and production environments.
+- Groq key, MongoDB Atlas connection string, JWT secret, and Render configuration remain environment/deployment concerns.
+- No live MongoDB save and no successful live AI endpoint test have been confirmed.
