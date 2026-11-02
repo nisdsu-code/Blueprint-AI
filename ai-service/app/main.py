@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import Depends, FastAPI, Header, HTTPException
 
 from app import config
@@ -7,6 +9,7 @@ from app.llm_client import LLMError
 from app.schemas import AnalyzeRequest, AnalyzeResponse, BlueprintRequest, BlueprintResponse
 
 app = FastAPI(title="BlueprintGen AI Service", version="0.1.0")
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
 
 def verify_service_token(x_service_token: str | None = Header(default=None)) -> None:

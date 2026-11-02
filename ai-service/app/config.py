@@ -34,3 +34,4 @@ LLM_BASE_URL = _provider["base_url"]
 LLM_API_KEY = os.getenv(_provider["key_env"], "").strip()
 LLM_MODEL = os.getenv("LLM_MODEL", "").strip() or _provider["default_model"]
 LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
+LLM_MAX_OUTPUT_TOKENS = int(os.getenv("LLM_MAX_OUTPUT_TOKENS", "8192"))
