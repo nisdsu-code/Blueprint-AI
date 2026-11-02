@@ -44,7 +44,7 @@ export default function AnalysisPanel({ analysis, answers, onAnswerChange, onUpd
         <AnalysisSection title="Technical considerations" items={analysis.technical_considerations} />
       </div>
 
-      {analysis.missing_information.length > 0 && (
+      {analysis.missing_information?.length > 0 && (
         <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-amber-800">
             <AlertTriangle size={16} />
